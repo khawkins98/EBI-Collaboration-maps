@@ -1,0 +1,1 @@
+Like my [other recreation](/mbostock/9231621) of the [xkcd:1335](http://xkcd.com/1335/) map projection, but rotated to solar noon at 12 o’clock and with the [solar terminator](/mbostock/4597134) overlaid. The blue region is night. The map updates continuously.

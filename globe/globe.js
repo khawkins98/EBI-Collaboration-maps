@@ -192,11 +192,11 @@ DAT.Globe = function(container, opts) {
         for (i = 0; i < data.length; i += step) {
           lat = data[i];
           lng = data[i + 1];
-          label = data[4];
-          // console.log(label, data);
-//        size = data[i + 2];
+          label = data[i + 4];
+          size = data[i + 2];
           color = colorFnWrapper(data,i);
-          size = 0;
+          // console.log(lat, lng, size, color, label);
+          // size = 0;
           addPoint(lat, lng, size, color, this._baseGeometry, label);
         }
       }
@@ -263,25 +263,33 @@ DAT.Globe = function(container, opts) {
     point.position.y = 200 * Math.cos(phi);
     point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
 
+
     point.lookAt(mesh.position);
 
     point.scale.z = Math.max( size, 0.1 ); // avoid non-invertible matrix
     point.updateMatrix();
 
+    // derive label position
+    var labelPosition = {};
+
+    labelPosition.x = 250 * Math.sin(phi) * Math.cos(theta);
+    labelPosition.y = 250 * Math.cos(phi);
+    labelPosition.z = (200 * Math.max( size + .2, 1 )) * Math.sin(phi) * Math.sin(theta);
+
+
+    // console.log('check',label);
+
     if (label != '') {
-      var spritey = makeTextSprite( "  " + label + " ", { fontsize: 32, backgroundColor: {r:255, g:100, b:100, a:1} } );
+      var spritey = makeTextSprite( " " + label + "", { fontsize: 20, backgroundColor: {r:255, g:255, b:255, a:1} } );
       // spritey.position = geometry.vertices[i].clone().multiplyScalar(1.1);
       // spritey.position = (point.position.x,point.position.y,point.position.z);
-      console.log(point.position.x,point.position.y,point.position.z,point.position.z,size)
-      spritey.position.set(point.position.x,point.position.y,point.scale.z+60);
+      console.log(label,point.position.x,point.position.y,point.position.z,point.position.z,size)
+      spritey.position.set(labelPosition.x,labelPosition.y,labelPosition.z);
   		scene.add( spritey );
     }
 
-
     for (var i = 0; i < point.geometry.faces.length; i++) {
-
       point.geometry.faces[i].color = color;
-
     }
     if(point.matrixAutoUpdate){
       point.updateMatrix();

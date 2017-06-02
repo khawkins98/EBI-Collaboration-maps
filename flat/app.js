@@ -112,9 +112,9 @@ function addMarkers(data,options) {
     .attr("cy", function (d) { return projection([d[1],d[0]])[1]; })
     .attr("r", function (d) {
       if (options.drawSpheres) {
-        return d[2]*5+3+'px';
+        return Math.sqrt(d[2]*80)+3+'px';
       } else {
-        return '2px';
+        return 3+'px';
       }
     })
     .attr("fill", options.fill)
@@ -126,7 +126,7 @@ function addMarkers(data,options) {
         .attr("stroke-width", 1.5)
         .attr("stroke", "rgba(255,255,255,.9)")
         .attr("r", function(d){
-          return d[2]*5+8+'px';
+          return Math.sqrt(d[2]*80)+8+'px';
         })
       ;
       // console.log(d,this,options);
@@ -148,7 +148,11 @@ function addMarkers(data,options) {
         .attr("stroke-width", 0.5)
         .attr("stroke", "rgba(230,230,230,.9)")
         .attr("r", function(d){
-          return d[2]*5+3+'px';
+          if (options.drawSpheres) {
+            return Math.sqrt(d[2]*80)+3+'px';
+          } else {
+            return 3+'px';
+          }
         })
       ;
       tooltip.transition()
@@ -239,6 +243,50 @@ function addLegend(data, options) {
   ;
 }
 
+function addPieGraph() {
+  var data = [10, 20, 100];
+
+  var width = 960,
+      height = 500,
+      radius = Math.min(width, height) / 2;
+
+  var color = d3.scaleOrdinal()
+      .range(["#98abc5", "#8a89a6", "#7b6888"]);
+
+  var arc = d3.arc()
+      .outerRadius(radius - 10)
+      .innerRadius(0);
+
+  var labelArc = d3.arc()
+      .outerRadius(radius - 40)
+      .innerRadius(radius - 40);
+
+  var pie = d3.pie()
+      .sort(null)
+      .value(function(d) { return d; });
+
+  var pieSvg = svg.append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    var g = pieSvg.selectAll(".arc")
+        .data(pie(data))
+      .enter().append("g")
+        .attr("class", "arc");
+
+    g.append("path")
+        .attr("d", arc)
+        .style("fill", function(d) { return color(d.data); });
+
+    g.append("text")
+        .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .text(function(d) { return d.data; });
+
+} // end addPieGraph
+
 // load data
 function loadData(url,options) {
   d3.json(url, function(error, data) {
@@ -260,6 +308,8 @@ loadData('data/grants.json',  {         fill: 'rgba(0,128,0,.3)', name: 'grants'
 loadData('data/industry-partners.json',{fill: 'rgba(0,128,0,.2)', name: 'industry-partners', drawLines: true, order: 1});
 loadData('data/industry-sab.json',{     fill: 'rgba(0,100,100,.2)', name: 'industry-sab', drawLines: true, order: 2});
 loadData('data/collab.json',  {         fill: 'rgba(200,0,0,.2)', name: 'collaboraters', drawLines: true, order: 3});
+
+addPieGraph();
 
 // map zooming
 function clicked(d) {

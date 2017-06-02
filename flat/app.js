@@ -203,20 +203,37 @@ function addLegend(data, options) {
     .attr("class", options.name + " legend")
     .style("fill", options.color)
     .on("click", function() {
-      var active     = g.select("."+options.name).style("opacity"), // Determine if current line is visible
-          newOpacity = [1, 0][active]; // toggle transparency
       // Hide or show the elements
       // console.log('click',this, newOpacity, active)
-      g.select(".markers."+options.name).style("opacity", newOpacity);
-      g.select(".point-arcs."+options.name).style("opacity", newOpacity);
-      if (newOpacity == 0) {
-        g.select(".markers."+options.name).style("display", "none");
-        g.select(".point-arcs."+options.name).style("display", "none");
-      } else {
-        g.select(".markers."+options.name).style("display", "");
-        g.select(".point-arcs."+options.name).style("display", "");
-      }
-      legend.select(".legend."+options.name).style("fill-opacity", newOpacity+.5);
+
+      // method to show only clicked
+      g.selectAll(".markers").style("opacity", 0);
+      g.selectAll(".point-arcs").style("opacity", 0);
+      g.select(".markers."+options.name).style("opacity", 1);
+      g.select(".point-arcs."+options.name).style("opacity", 1);
+
+      g.selectAll(".markers").style("display", "none");
+      g.selectAll(".point-arcs").style("display", "none");
+      g.select(".markers."+options.name).style("display", "");
+      g.select(".point-arcs."+options.name).style("display", "");
+
+      legend.selectAll(".legend").style("fill-opacity", 0.5);
+      legend.select(".legend."+options.name).style("fill-opacity", 1);
+
+
+      // method to toggle one at a time
+      // var active     = g.select("."+options.name).style("opacity"), // Determine if current line is visible
+      //     newOpacity = [1, 0][active]; // toggle transparency
+      // g.select(".markers."+options.name).style("opacity", newOpacity);
+      // g.select(".point-arcs."+options.name).style("opacity", newOpacity);
+      // if (newOpacity == 0) {
+      //   g.select(".markers."+options.name).style("display", "none");
+      //   g.select(".point-arcs."+options.name).style("display", "none");
+      // } else {
+      //   g.select(".markers."+options.name).style("display", "");
+      //   g.select(".point-arcs."+options.name).style("display", "");
+      // }
+      // legend.select(".legend."+options.name).style("fill-opacity", newOpacity+.5);
     })
     .text(options.name)
   ;

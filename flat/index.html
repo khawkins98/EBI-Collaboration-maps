@@ -18,9 +18,20 @@ body {
 .markers {
   cursor: pointer;
 }
-.legend rect {
-  fill: #fff;
-  stroke: #eee;
+h2,p  {
+  margin: 0;
+  font-weight: 400;
+}
+div.legend {
+  position: absolute;
+  width: 60%;
+  min-width: 400px;
+  top: 1%;
+  left: 1%;
+  padding: 1rem;
+
+  background: #fff;
+  border: 1px solid #eee;
 }
 div.tooltip {
   position: absolute;
@@ -57,6 +68,10 @@ div.tooltip .label {
 }
 
 </style>
+<div class="legend">
+  <h2>EMBL-EBI Collaborations</h2>
+  <p>We have some text here that talks about the thing there. it's a thing, that has information that's not here, clear?</p>
+</div>
 <svg></svg>
 
 <script src="app.js"></script>

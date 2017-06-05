@@ -1,4 +1,3 @@
-
 var svg = d3.select("svg"),
     active = d3.select(null),
     width = window.innerWidth-5,
@@ -15,13 +14,16 @@ function resize() {
   force.size([width, height]).resume();
 }
 
-
-
 // https://github.com/d3/d3-geo
 // https://github.com/d3/d3-geo-projection
+// var projection = d3.geoTransverseMercator()
+//         .scale(180)
+//         // .translate([100,100])
+//         .center([0,20])
+//     ;
 var projection = d3.geoGilbert()
         .scale(480)
-        // .translate([100,100])
+        .translate([800,600])
         .center([0,20])
     ;
 
@@ -41,12 +43,12 @@ var legend = svg.append("g")
               .attr("class", "legend");
 var activeLegend = '';
 
-legend.append("rect")
-    .attr("width", 150)
-    .attr("height", 150)
-    .attr("x", width-170)
-    .attr("y", height-170)
-    ;
+// legend.append("rect")
+//     .attr("width", width - width/3)
+//     .attr("height", 150)
+//     .attr("x", 20)
+//     .attr("y", 20)
+//     ;
 
 var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -255,7 +257,7 @@ function addLegend(data, options) {
 }
 
 function drawPieGraph(data,options) {
-  var radius = Math.min(width, height) / 5;
+  var radius = Math.min(width, height) / 6;
 
   var color = ["","rgba(0,128,0,.3)", "rgba(0,128,0,.2)", "#333333"];
 
@@ -283,7 +285,7 @@ function drawPieGraph(data,options) {
 
   var pieSvg = g.append("g")
     .attr("class", options.name + " pie-graph")
-    .attr("transform", "translate(" + (width - (width / 5)) + "," + ((height/5)) + ")")
+    .attr("transform", "translate(" + ((width / 5)) + "," + (height-(height/5)) + ")")
     ;
 
     var pieArcs = pieSvg.selectAll(".arc")
@@ -293,7 +295,9 @@ function drawPieGraph(data,options) {
 
     pieArcs.append("path")
         .attr("d", arc)
-        .style("fill", function(d) { return color[d.data[3]]; });
+        .style("stroke-width", "0.25")
+        .style("fill", function(d) { return color[d.data[3]]; })
+        ;
 
 
     // label and line method from: https://bl.ocks.org/mbhall88/b2504f8f3e384de4ff2b9dfa60f325e2
@@ -301,7 +305,10 @@ function drawPieGraph(data,options) {
         .attr('dy', '.35em')
         .html(function(d) {
             // add "key: value" for given category. Number inside tspan is bolded in stylesheet.
-            if (d.data[3] == 3) { // res of world get no direct label
+            // if (d.data[3] == 3) { // res of world get no direct label
+            //   return '';
+            // }
+            if (d.data[2]*10 <= 3) { // no label for small values
               return '';
             }
             return  d.data[3] + d.data[4] + ': <tspan>' + d.data[2]*10 + '</tspan>';
@@ -329,7 +336,11 @@ function drawPieGraph(data,options) {
         .attr("stroke-width", 0.25)
         .attr('points', function(d) {
 
-            if (d.data[3] == 3) { // res of world get no direct label
+            // if (d.data[3] == 3) { // res of world get no direct label
+            //   return '';
+            // }
+
+            if (d.data[2]*10 <= 3) { // no label for small values
               return '';
             }
 

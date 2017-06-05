@@ -39,9 +39,7 @@ svg.on("click", stopped, true);
 
 var legend = svg.append("g")
               .attr("class", "legend");
-var tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
+var activeLegend = '';
 
 legend.append("rect")
     .attr("width", 150)
@@ -49,6 +47,10 @@ legend.append("rect")
     .attr("x", width-170)
     .attr("y", height-170)
     ;
+
+var tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
 
 // g.insert("path",":first-child")
 //     .attr("id", "graticule")
@@ -197,6 +199,7 @@ function drawLines(data,options) {
 
 }
 
+
 function addLegend(data, options) {
   var offset = options.order * 20;
 
@@ -211,18 +214,26 @@ function addLegend(data, options) {
       // console.log('click',this, newOpacity, active)
 
       // method to show only clicked
+      g.selectAll(".pie-graph").style("opacity", 0);
       g.selectAll(".markers").style("opacity", 0);
       g.selectAll(".point-arcs").style("opacity", 0);
+      g.select(".pie-graph."+options.name).style("opacity", 1);
       g.select(".markers."+options.name).style("opacity", 1);
       g.select(".point-arcs."+options.name).style("opacity", 1);
 
+      g.selectAll(".pie-graph").style("display", "none");
       g.selectAll(".markers").style("display", "none");
       g.selectAll(".point-arcs").style("display", "none");
+      g.select(".pie-graph."+options.name).style("display", "");
       g.select(".markers."+options.name).style("display", "");
       g.select(".point-arcs."+options.name).style("display", "");
 
       legend.selectAll(".legend").style("fill-opacity", 0.5);
       legend.select(".legend."+options.name).style("fill-opacity", 1);
+
+      activeLegend = options.name; // track which layer is active
+
+      // drawPieGraph();
 
 
       // method to toggle one at a time
@@ -243,15 +254,11 @@ function addLegend(data, options) {
   ;
 }
 
-function addPieGraph() {
-  var data = [10, 20, 100];
-
-  var width = 960,
-      height = 500,
-      radius = Math.min(width, height) / 2;
+function drawPieGraph(data,options) {
+  var radius = Math.min(width, height) / 5;
 
   var color = d3.scaleOrdinal()
-      .range(["#98abc5", "#8a89a6", "#7b6888"]);
+      .range(["#98abc5", "#8a89a6", "#7b6888", "#333333"]);
 
   var arc = d3.arc()
       .outerRadius(radius - 10)
@@ -263,27 +270,65 @@ function addPieGraph() {
 
   var pie = d3.pie()
       .sort(null)
-      .value(function(d) { return d; });
+      .value(function(d) { return d[2]; });
 
-  var pieSvg = svg.append("svg")
-      .attr("width", width)
-      .attr("height", height)
-    .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  // this arc is used for aligning the text labels
+  var outerArc = d3.arc()
+      .outerRadius(radius * 0.9)
+      .innerRadius(radius * 0.9);
+  // calculates the angle for the middle of a slice
+  function midAngle(d) { return d.startAngle + (d.endAngle - d.startAngle) / 2; }
 
-    var g = pieSvg.selectAll(".arc")
+  var pieSvg = g.append("g")
+    .attr("class", options.name + " pie-graph")
+    .attr("transform", "translate(" + (width - (width / 5)) + "," + ((height/5)) + ")")
+    ;
+
+    var pieArcs = pieSvg.selectAll(".arc")
         .data(pie(data))
       .enter().append("g")
         .attr("class", "arc");
 
-    g.append("path")
+    pieArcs.append("path")
         .attr("d", arc)
-        .style("fill", function(d) { return color(d.data); });
+        .style("fill", function(d) { return color(d.data[3]); });
 
-    g.append("text")
-        .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
-        .attr("dy", ".35em")
-        .text(function(d) { return d.data; });
+
+    // label and line method from: https://bl.ocks.org/mbhall88/b2504f8f3e384de4ff2b9dfa60f325e2
+    pieArcs.append("text")
+        .attr('dy', '.35em')
+        .html(function(d) {
+            // add "key: value" for given category. Number inside tspan is bolded in stylesheet.
+            return d.data[4] + ': <tspan>' + d.data[2]*10 + '</tspan>';
+        })
+        .attr('transform', function(d) {
+
+            // effectively computes the centre of the slice.
+            // see https://github.com/d3/d3-shape/blob/master/README.md#arc_centroid
+            var pos = outerArc.centroid(d);
+
+            // changes the point to be on left or right depending on where label is.
+            pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
+            return 'translate(' + pos + ')';
+        })
+        .style('text-anchor', function(d) {
+            // if slice centre is on the left, anchor text to start, otherwise anchor to end
+            return (midAngle(d)) < Math.PI ? 'start' : 'end';
+        });
+
+
+    // add lines connecting labels to slice. A polyline creates straight lines connecting several points
+    pieArcs.append('polyline')
+        .attr("fill", "none")
+        .attr("stroke", "#000")
+        .attr("stroke-width", 0.25)
+        .attr('points', function(d) {
+
+            // see label transform function for explanations of these three lines.
+            var pos = outerArc.centroid(d);
+            pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
+            return [arc.centroid(d), outerArc.centroid(d), pos]
+        });
 
 } // end addPieGraph
 
@@ -299,17 +344,20 @@ function loadData(url,options) {
       drawLines(data,options);
     }
     addLegend(data,options);
+    if (options.drawPieGraph) {
+      drawPieGraph(data,options);
+    }
   });
 }
 
 // load data sets
-loadData('data/publications.json',  {   fill: 'rgba(0,100,100,.3)', name: 'publications', drawSpheres: true, drawLines: false, order: 5});
-loadData('data/grants.json',  {         fill: 'rgba(0,128,0,.3)', name: 'grants', drawSpheres: true, drawLines: false, order: 4});
-loadData('data/industry-partners.json',{fill: 'rgba(0,128,0,.2)', name: 'industry-partners', drawLines: true, order: 1});
-loadData('data/industry-sab.json',{     fill: 'rgba(0,100,100,.2)', name: 'industry-sab', drawLines: true, order: 2});
-loadData('data/collab.json',  {         fill: 'rgba(200,0,0,.2)', name: 'collaboraters', drawLines: true, order: 3});
+loadData('data/publications.json',  {   fill: 'rgba(0,100,100,.3)', name: 'publications', drawSpheres: true, drawPieGraph: true, drawLines: false, order: 5});
+loadData('data/grants.json',  {         fill: 'rgba(0,128,0,.3)', name: 'grants', drawSpheres: true, drawPieGraph: true, drawLines: false, order: 4});
+loadData('data/industry-partners.json',{fill: 'rgba(0,128,0,.2)', name: 'industry-partners', drawPieGraph: false, drawLines: true, order: 1});
+loadData('data/industry-sab.json',{     fill: 'rgba(0,100,100,.2)', name: 'industry-sab', drawPieGraph: false, drawLines: true, order: 2});
+loadData('data/collab.json',  {         fill: 'rgba(200,0,0,.2)', name: 'collaboraters', drawPieGraph: false, drawLines: true, order: 3});
 
-addPieGraph();
+// addPieGraph();
 
 // map zooming
 function clicked(d) {

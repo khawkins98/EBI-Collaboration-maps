@@ -257,8 +257,7 @@ function addLegend(data, options) {
 function drawPieGraph(data,options) {
   var radius = Math.min(width, height) / 5;
 
-  var color = d3.scaleOrdinal()
-      .range(["#98abc5", "#8a89a6", "#7b6888", "#333333"]);
+  var color = ["","rgba(0,128,0,.3)", "rgba(0,128,0,.2)", "#333333"];
 
   var arc = d3.arc()
       .outerRadius(radius - 10)
@@ -269,7 +268,10 @@ function drawPieGraph(data,options) {
       .innerRadius(radius - 40);
 
   var pie = d3.pie()
-      .sort(null)
+      .sort(function(a, b) {
+        // we sort by grouping and then value
+        return d3.ascending(a[3], b[3]) || d3.descending(a[2], b[2]);
+      })
       .value(function(d) { return d[2]; });
 
   // this arc is used for aligning the text labels
@@ -291,7 +293,7 @@ function drawPieGraph(data,options) {
 
     pieArcs.append("path")
         .attr("d", arc)
-        .style("fill", function(d) { return color(d.data[3]); });
+        .style("fill", function(d) { return color[d.data[3]]; });
 
 
     // label and line method from: https://bl.ocks.org/mbhall88/b2504f8f3e384de4ff2b9dfa60f325e2
@@ -299,7 +301,10 @@ function drawPieGraph(data,options) {
         .attr('dy', '.35em')
         .html(function(d) {
             // add "key: value" for given category. Number inside tspan is bolded in stylesheet.
-            return d.data[4] + ': <tspan>' + d.data[2]*10 + '</tspan>';
+            if (d.data[3] == 3) { // res of world get no direct label
+              return '';
+            }
+            return  d.data[3] + d.data[4] + ': <tspan>' + d.data[2]*10 + '</tspan>';
         })
         .attr('transform', function(d) {
 
@@ -323,6 +328,10 @@ function drawPieGraph(data,options) {
         .attr("stroke", "#000")
         .attr("stroke-width", 0.25)
         .attr('points', function(d) {
+
+            if (d.data[3] == 3) { // res of world get no direct label
+              return '';
+            }
 
             // see label transform function for explanations of these three lines.
             var pos = outerArc.centroid(d);

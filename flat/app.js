@@ -43,12 +43,12 @@ var legend = svg.append("g")
               .attr("class", "legend");
 var activeLegend = '';
 
-// legend.append("rect")
-//     .attr("width", width - width/3)
-//     .attr("height", 150)
-//     .attr("x", 20)
-//     .attr("y", 20)
-//     ;
+legend.append("rect")
+    .attr("width", width - width/3)
+    .attr("height", 150)
+    .attr("x", 20)
+    .attr("y", 20)
+    ;
 
 var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -207,8 +207,8 @@ function addLegend(data, options) {
 
   var legendGroup = legend.append("g");
   legendGroup.append("text")
-    .attr("x", width-150)
-    .attr("y", height - 170 + offset)
+    .attr("x", 30)
+    .attr("y", 100 + offset)
     .attr("class", options.name + " legend")
     .style("fill", options.color)
     .on("click", function() {
@@ -216,17 +216,21 @@ function addLegend(data, options) {
       // console.log('click',this, newOpacity, active)
 
       // method to show only clicked
-      g.selectAll(".pie-graph").style("opacity", 0);
+      svg.selectAll(".pie-graph").style("opacity", 0);
+      legend.selectAll(".stack-chart").style("opacity", 0);
       g.selectAll(".markers").style("opacity", 0);
       g.selectAll(".point-arcs").style("opacity", 0);
-      g.select(".pie-graph."+options.name).style("opacity", 1);
+      svg.select(".pie-graph."+options.name).style("opacity", 1);
+      legend.select(".stack-chart."+options.name).style("opacity", 1);
       g.select(".markers."+options.name).style("opacity", 1);
       g.select(".point-arcs."+options.name).style("opacity", 1);
 
-      g.selectAll(".pie-graph").style("display", "none");
+      svg.selectAll(".pie-graph").style("display", "none");
+      legend.selectAll(".stack-chart").style("display", "none");
       g.selectAll(".markers").style("display", "none");
       g.selectAll(".point-arcs").style("display", "none");
-      g.select(".pie-graph."+options.name).style("display", "");
+      svg.select(".pie-graph."+options.name).style("display", "");
+      legend.select(".stack-chart."+options.name).style("display", "");
       g.select(".markers."+options.name).style("display", "");
       g.select(".point-arcs."+options.name).style("display", "");
 
@@ -256,18 +260,104 @@ function addLegend(data, options) {
   ;
 }
 
+function drawStackChart(data,options) {
+  console.log(data);
+
+  var renderedData = [];
+
+  // constrcut data
+  // we convert our flat data into groupings
+  for (var i = 0; i < data.length; i++) {
+    var tempGroup = Math.floor(data[i][3]);
+    renderedData[tempGroup] = renderedData[tempGroup] || 0;
+    var tempVal = renderedData[tempGroup] + (data[i][2] * 10);
+    renderedData[tempGroup] = tempVal;
+  }
+
+  data = [{"EMBL Members":renderedData[1],"Rest of Europe":renderedData[2],"Rest of world":renderedData[3],"Other":renderedData[4]}];
+  // var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
+
+  console.log(data);
+
+
+  var initStackedBarChart = {
+  	draw: function(config) {
+  		me = this,
+  		domEle = config.element,
+  		stackKey = config.key,
+  		data = config.data,
+  		margin = {top: 20, right: 20, bottom: 30, left: 50},
+  		parseDate = d3.timeParse("%m/%Y"),
+  		width = 960 - margin.left - margin.right,
+  		height = 500 - margin.top - margin.bottom,
+  		xScale = d3.scaleLinear().rangeRound([0, width]),
+  		yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
+  		color = d3.scaleOrdinal(d3.schemeCategory20),
+  		xAxis = d3.axisBottom(xScale),
+  		yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
+  		stackSvg = legend.append("g")
+          .attr("class", options.name + " stack-chart")
+  				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  		var stack = d3.stack()
+  			.keys(stackKey)
+  			/*.order(d3.stackOrder)*/
+  			.offset(d3.stackOffsetNone);
+
+  		var layers = stack(data);
+  			data.sort(function(a, b) { return b.total - a.total; });
+  			yScale.domain(data.map(function(d) { return parseDate(d.date); }));
+  			xScale.domain([0, d3.max(layers[layers.length - 1], function(d) { return d[0]; }) ]).nice();
+
+  		var layer = stackSvg.selectAll(".layer")
+  			.data(layers)
+  			.enter().append("g")
+  			.attr("class", "layer")
+  			.style("fill", function(d, i) { return color(i); });
+
+  		  layer.selectAll("rect")
+  			  .data(function(d) { return d; })
+  			.enter().append("rect")
+          // .attr("y", function(d) { return yScale(parseDate(d.data.date)); })
+          .attr("y", function(d) { return yScale(10); })
+  			  .attr("x", function(d) { return xScale(d[0]); })
+          .attr("height", 20)
+          // .attr("height", yScale.bandwidth())
+  			  .attr("width", function(d) { return xScale(d[0]) });
+
+  			// stackSvg.append("g")
+  			// .attr("class", "axis axis--x")
+  			// .attr("transform", "translate(0," + (height+5) + ")")
+  			// .call(xAxis);
+        //
+  			// stackSvg.append("g")
+  			// .attr("class", "axis axis--y")
+  			// .attr("transform", "translate(0,0)")
+  			// .call(yAxis);
+  	}
+  }
+  // var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
+  var key = ["EMBL Members", "Rest of Europe", "Rest of world", "Other"];
+  initStackedBarChart.draw({
+  	data: data,
+  	key: key,
+  	element: 'stacked-bar'
+  });
+
+}
+
 function drawPieGraph(data,options) {
   var radius = Math.min(width, height) / 6;
 
   var color = ["","rgba(0,128,0,.3)", "rgba(0,128,0,.2)", "#333333"];
 
   var arc = d3.arc()
-      .outerRadius(radius - 10)
+      .outerRadius(radius - 22)
       .innerRadius(0);
 
   var labelArc = d3.arc()
-      .outerRadius(radius - 40)
-      .innerRadius(radius - 40);
+      .outerRadius(radius - 20)
+      .innerRadius(radius - 20);
 
   var pie = d3.pie()
       .sort(function(a, b) {
@@ -283,7 +373,7 @@ function drawPieGraph(data,options) {
   // calculates the angle for the middle of a slice
   function midAngle(d) { return d.startAngle + (d.endAngle - d.startAngle) / 2; }
 
-  var pieSvg = g.append("g")
+  var pieSvg = svg.append("g")
     .attr("class", options.name + " pie-graph")
     .attr("transform", "translate(" + ((width / 5)) + "," + (height-(height/5)) + ")")
     ;
@@ -347,7 +437,7 @@ function drawPieGraph(data,options) {
             // see label transform function for explanations of these three lines.
             var pos = outerArc.centroid(d);
             pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
-            return [arc.centroid(d), outerArc.centroid(d), pos]
+            return [labelArc.centroid(d), outerArc.centroid(d), pos]
         });
 
 } // end addPieGraph
@@ -363,16 +453,19 @@ function loadData(url,options) {
     if (options.drawLines) {
       drawLines(data,options);
     }
-    addLegend(data,options);
     if (options.drawPieGraph) {
       drawPieGraph(data,options);
     }
+    if (options.drawStackChart) {
+      drawStackChart(data,options);
+    }
+    addLegend(data,options);
   });
 }
 
 // load data sets
-loadData('data/publications.json',  {   fill: 'rgba(0,100,100,.3)', name: 'publications', drawSpheres: true, drawPieGraph: true, drawLines: false, order: 5});
-loadData('data/grants.json',  {         fill: 'rgba(0,128,0,.3)', name: 'grants', drawSpheres: true, drawPieGraph: true, drawLines: false, order: 4});
+loadData('data/publications.json',  {   fill: 'rgba(0,100,100,.3)', name: 'publications', drawSpheres: true, drawStackChart: true, drawLines: false, order: 5});
+loadData('data/grants.json',  {         fill: 'rgba(0,128,0,.3)', name: 'grants', drawSpheres: true, drawStackChart: true, drawLines: false, order: 4});
 loadData('data/industry-partners.json',{fill: 'rgba(0,128,0,.2)', name: 'industry-partners', drawPieGraph: false, drawLines: true, order: 1});
 loadData('data/industry-sab.json',{     fill: 'rgba(0,100,100,.2)', name: 'industry-sab', drawPieGraph: false, drawLines: true, order: 2});
 loadData('data/collab.json',  {         fill: 'rgba(200,0,0,.2)', name: 'collaboraters', drawPieGraph: false, drawLines: true, order: 3});

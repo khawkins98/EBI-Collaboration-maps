@@ -219,7 +219,7 @@ function addLegend(data, options) {
     .attr("style", function(){
       if (options.drawLines) {
         // add a line to top for lines
-        return "border-top: 5px solid "+options.fill+"; background: #999"
+        return "border-top: 5px solid "+options.fill+"; background: none; color: #333"
 
       }
       return "border-top: 5px solid "+options.fill+"; background:"+options.fill
@@ -230,7 +230,7 @@ function addLegend(data, options) {
       // if (options.name === 'All') {
       //   return 'Show all';
       // }
-      return options.name + '<div class="slideshow-progress"></div>';
+      return options.humanName + '<div class="slideshow-progress"></div>';
     })
     .on("click", function() {
       // Hide or show the elements
@@ -285,7 +285,7 @@ function addLegend(data, options) {
         g.select(".markers."+options.name).style("display", "");
         g.select(".point-arcs."+options.name).style("display", "");
 
-        navigation.selectAll("a").style("opacity", 0.5).classed("active", false).classed("secondary", true);
+        navigation.selectAll("a").style("opacity", 0.6).classed("active", false).classed("secondary", true);
         navigation.select("a."+options.name).style("opacity", 1).classed("active", true).classed("secondary", false);;
       }
 
@@ -340,6 +340,13 @@ function drawStackChart(data,options) {
   		xScale = d3.scaleLinear().rangeRound([0, width]),
   		yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
   		// color = d3.scaleOrdinal(d3.schemeCategory20),
+      color = d3.scaleLinear().domain([1,3])
+        .interpolate(d3.interpolateHcl)
+        .range([d3.rgb(d3.color(options.fill)), d3.rgb('#111')]);
+      // color = d3.scaleLinear()
+      //   .range(["red", "blue"])
+      //   .domain([10,500])
+      //   .interpolate(d3.interpolateLab);
   		// xAxis = d3.axisBottom(xScale),
   		// yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
   		stackSvg = d3.select('svg.stack-chart-parent').append("g")
@@ -362,8 +369,8 @@ function drawStackChart(data,options) {
   			.data(layers)
   			.enter().append("g")
   			.attr("class", "layer")
-  			// .style("fill", function(d, i) { return color(i); })
-        .style("fill", options.fill)
+  			.style("fill", function(d, i) { return color(i); })
+        // .style("fill", options.fill)
         ;
 
   		  layer.selectAll("rect")
@@ -536,11 +543,31 @@ function loadData(url,options) {
 }
 
 // load data sets
-loadData('data/publications.json',  {   fill: 'rgb(0,100,100)', name: 'publications', drawSpheres: true, drawStackChart: true, drawLines: false, order: 5});
-loadData('data/grants.json',  {         fill: 'rgb(0,128,0)', name: 'grants', drawSpheres: true, drawStackChart: true, drawLines: false, order: 4});
-loadData('data/industry-partners.json',{fill: 'rgb(0,128,0)', name: 'industry-partners', drawPieGraph: false, drawLines: true, order: 1});
-loadData('data/industry-sab.json',{     fill: 'rgb(0,100,100)', name: 'industry-sab', drawPieGraph: false, drawLines: true, order: 2});
-loadData('data/collab.json',  {         fill: 'rgb(200,0,0)', name: 'collaboraters', drawPieGraph: false, drawLines: true, order: 3});
+loadData('data/publications.json', {
+          fill: 'rgb(0,100,100)',
+          name: 'publications',
+          humanName: 'Joint Publications',
+          drawSpheres: true, drawStackChart: true, drawLines: false, order: 5});
+loadData('data/grants.json', {
+          fill: 'rgb(0,128,0)',
+          name: 'grants',
+          humanName: 'Joint Grant Funding',
+          drawSpheres: true, drawStackChart: true, drawLines: false, order: 4});
+loadData('data/industry-partners.json', {
+          fill: 'rgb(0,100,100)',
+          name: 'industry-partners',
+          humanName: 'Industry Programme members',
+          drawPieGraph: false, drawLines: true, order: 1});
+loadData('data/industry-sab.json', {
+          fill: 'rgb(0,128,0)',
+          name: 'industry-sab',
+          humanName: 'Scientific Advisory Committees',
+          drawPieGraph: false, drawLines: true, order: 2});
+loadData('data/collab.json', {
+          fill: 'rgb(200,0,0)',
+          name: 'collaboraters',
+          humanName: 'Major Database Collaborations',
+          drawPieGraph: false, drawLines: true, order: 3});
 
 // create the "all" button
 addLegend('',{ fill: 'rgb(100,100,100)', name: 'All', order: 0})
@@ -557,7 +584,7 @@ var slideShow = {
 
 function enableSlideShowMode() {
   if (slideShow.active) {
-    if (slideShow.current < slideShow.slides.length) {
+    if (slideShow.current < slideShow.slides.length - 1) {
       slideShow.current++
     } else {
       slideShow.current = 0;

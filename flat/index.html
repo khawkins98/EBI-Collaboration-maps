@@ -49,6 +49,17 @@ div.tool-tip {
   text-transform: capitalize;
   position: relative;
 }
+.button.active {
+  font-weight: 800;
+}
+.navigation.paused .button.active {
+  font-weight: 400;
+}
+/*a.button,
+a.button.secondary {
+  background: none;
+  color: #222;
+}*/
 .button .slideshow-progress {
   content: " ";
   position: absolute;
@@ -79,14 +90,24 @@ div.tool-tip {
 
 .callout {
   position: absolute;
-  /*background: rgba(255, 255, 255, 0.5);*/
-  background: none;
+  background: rgba(255,255,255,.5);
+  background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(246,246,246,0.7) 70%, rgba(255,255,255,0) 100%);
+  /*background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(255,255,255,1)), color-stop(47%, rgba(246,246,246,0.53)), color-stop(100%, rgba(255,255,255,0)));*/
+  /*background: -webkit-linear-gradient(top, rgba(255,255,255,1) 30%, rgba(246,246,246,0.8) 80%, rgba(255,255,255,0) 100%);*/
+  background: -o-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(246,246,246,0.7) 70%, rgba(255,255,255,0) 100%);
+  background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(246,246,246,0.7) 70%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(246,246,246,0.7) 70%, rgba(255,255,255,0) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ffffff', GradientType=0 );
+
 }
 
 </style>
-<div class="callout columns medium-10 large-8">
-  <h2>Gloabl collaboration</h2>
-  <p>EMBL-EBI has some text here that talks about the thing there. it's a thing, that has information that's not here, clear?</p>
+<div class="callout columns">
+  <h2>Global collaboration</h2>
+  <p>
+    We are proudly European, but our culture and community are profoundly international.<br/>
+    This map shows our global network in terms of joint grant funding, joint publications, major database collaborations and expert guidance.
+   </p>
   <div class="navigation padding-top-large"></div>
   <svg class="stack-chart-parent" style="width:100%; height: 3rem;"></svg>
 </div>

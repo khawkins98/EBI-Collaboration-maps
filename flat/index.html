@@ -5,16 +5,14 @@
 <script src="https://d3js.org/d3-array.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+<link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/libraries/foundation-6/css/foundation.css" type="text/css" media="all" />
+<link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/css/ebi-global.css" type="text/css" media="all" />
+<link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Icon-fonts/v1.2/fonts.css" type="text/css" media="all" />
+<link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/css/theme-embl-petrol.css" type="text/css" media="all" />
 <style>
-@import url('https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700');
 body {
-  margin: 0;
-  padding: 0;
-  background-color: #fff;
-  font-family: 'Noto Sans', sans-serif;
   font-size: .9rem;
 }
-.legend text,
 .markers {
   cursor: pointer;
 }
@@ -22,20 +20,8 @@ h2,p  {
   margin: 0;
   font-weight: 400;
 }
-div.legend {
-  position: absolute;
-  width: 60%;
-  min-width: 400px;
-  top: 1%;
-  left: 1%;
-  padding: 1rem;
-}
-.legend rect {
-  fill: #fff;
-  stroke: #888;
-  stroke-width: .25;
-}
-div.tooltip {
+div.tool-tip {
+  text-transform: capitalize;
   position: absolute;
   width: auto;
   height: auto;
@@ -47,19 +33,6 @@ div.tooltip {
   padding: .5rem;
   pointer-events: none;
 }
-div.tooltip .label {
-  font-size: .9rem;
-  border-radius: 30px;
-  background: #000;
-  color: #fff;
-  font-weight: 700;
-  width: 30px;
-  height: 30px;
-  display: block;
-  text-align: center;
-  vertical-align: center;
-  line-height: 30px;
-}
 .arc text {
   font: 10px sans-serif;
   text-anchor: middle;
@@ -68,12 +41,35 @@ div.tooltip .label {
 .arc path {
   stroke: #fff;
 }
+.label {
+  color: #333;
+  font-weight: 900
+}
+.button {
+  text-transform: capitalize;
+}
+.button.All:before{
+  content: "/ ";
+  font-family: "EBI-Functional"
+
+}
+.button.All.active:before{
+  content: "Showing ";
+  font-family: "Helvetica", Arial, sans-serif;
+}
+
+.callout {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+}
 
 </style>
-<div class="legend">
-  <h2>EMBL-EBI Collaborations</h2>
-  <p>We have some text here that talks about the thing there. it's a thing, that has information that's not here, clear?</p>
+<div class="callout columns medium-10 large-8">
+  <h2>Gloabl collaboration</h2>
+  <p>EMBL-EBI has some text here that talks about the thing there. it's a thing, that has information that's not here, clear?</p>
+  <div class="navigation padding-top-large"></div>
+  <svg class="stack-chart-parent" style="width:100%; height: 3rem;"></svg>
 </div>
-<svg></svg>
+<svg class="main"></svg>
 
 <script src="app.js"></script>

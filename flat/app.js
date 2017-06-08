@@ -1,4 +1,4 @@
-var svg = d3.select("svg"),
+var svg = d3.select("svg.main"),
     active = d3.select(null),
     width = window.innerWidth-5,
     height = window.innerHeight-5
@@ -22,11 +22,10 @@ function resize() {
 //         .center([0,20])
 //     ;
 var projection = d3.geoGilbert()
-        .scale(480)
-        .translate([800,600])
+        .scale(560)
+        .translate([800,500])
         .center([0,20])
     ;
-
 
 var path = d3.geoPath()
     .projection(projection);
@@ -39,19 +38,19 @@ var zoom = d3.zoom()
 var g = svg.append("g");
 svg.on("click", stopped, true);
 
-var legend = svg.append("g")
-              .attr("class", "legend");
-var activeLegend = '';
+// var legend = svg.append("g").attr("class", "legend");
 
-legend.append("rect")
-    .attr("width", width - width/3)
-    .attr("height", 150)
-    .attr("x", 20)
-    .attr("y", 20)
-    ;
+var navigation = d3.select(".navigation");
+
+// legend.append("rect")
+//     .attr("width", width - width/3)
+//     .attr("height", 150)
+//     .attr("x", 20)
+//     .attr("y", 20)
+//     ;
 
 var tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
+    .attr("class", "tool-tip")
     .style("opacity", 0);
 
 // g.insert("path",":first-child")
@@ -74,20 +73,19 @@ d3.json("world-50m.json", function(error, world) {
   g.insert("path",":first-child")
       .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
       .attr("fill", "none")
-      .attr("stroke", "rgba(255,255,255,.4)")
+      .attr("stroke", "rgba(255,255,255,.9)")
       .attr("stroke-width", 0.15)
       .attr("d", path);
 
   g.insert("path",":first-child")
   // g.insert("path", "#graticule")
       .datum(topojson.feature(world, world.objects.land))
-      .attr("fill", "#AAA")
+      .attr("fill", "#CCC")
       .attr("d", path)
       .on("click", clicked);
 
-
   svg
-    .call(zoom); // delete this line to disable free zooming
+    .call(zoom);
 });
 
 // we have a simple json data string from google sheets,
@@ -122,6 +120,7 @@ function addMarkers(data,options) {
       }
     })
     .attr("fill", options.fill)
+    .attr("opacity", 0.2)
     .attr("stroke", "rgba(230,230,230,.9)")
     .attr("stroke-width", 0.5)
     .on("mouseover", function(d) {
@@ -137,7 +136,7 @@ function addMarkers(data,options) {
       tooltip.transition()
         .duration(200)
         .style("opacity", .9);
-      tooltip.html(options.name + "<br/> <span class='label'>" + d[2]*10 + "</span> " + d[4])
+      tooltip.html("<span class='label'>"+options.name + "</span><br/>" + d[4] + ": <span class=''>" + d[2]*10 + "</span> ")
         .style("left", (d3.event.pageX) + "px")
         .style("top", (d3.event.pageY - 28) + "px");
       })
@@ -189,6 +188,7 @@ function drawLines(data,options) {
       .attr("fill", "none")
       .attr("stroke", options.fill)
       .attr("stroke-width", 0.35)
+      .attr("opacity", 0.2)
       .attr("d", function() {
         var variationX = Math.floor(Math.random() * (numberOfLinesToDraw)) / 100;
         var variationY = Math.floor(Math.random() * (numberOfLinesToDraw)) / 100;
@@ -203,41 +203,81 @@ function drawLines(data,options) {
 
 
 function addLegend(data, options) {
-  var offset = options.order * 20;
+  var offset = (options.order-1) * 100;
 
-  var legendGroup = legend.append("g");
-  legendGroup.append("text")
-    .attr("x", 30)
-    .attr("y", 100 + offset)
-    .attr("class", options.name + " legend")
-    .style("fill", options.color)
+  console.log(options)
+
+  // var legendGroup = legend.append("g")
+  //   .attr("class", options.name + " legend")
+  // ;
+
+  navigation.append("a")
+    // .attr("x", 30 + offset)
+    // .attr("y", 100)
+    // .style("background-color", options.color)
+    .attr("class","button padding-top-medium padding-bottom-medium "+options.name)
+    .attr("style", function(){
+      if (options.drawLines) {
+        // add a line to top for lines
+        return "border-top: 5px solid "+options.fill+"; background: #999"
+
+      }
+      return "border-top: 5px solid "+options.fill+"; background:"+options.fill
+
+    })
+    .attr("href","#")
+    .html(function(d){
+      // if (options.name === 'All') {
+      //   return 'Show all';
+      // }
+      return options.name;
+    })
     .on("click", function() {
       // Hide or show the elements
       // console.log('click',this, newOpacity, active)
 
-      // method to show only clicked
-      svg.selectAll(".pie-graph").style("opacity", 0);
-      legend.selectAll(".stack-chart").style("opacity", 0);
-      g.selectAll(".markers").style("opacity", 0);
-      g.selectAll(".point-arcs").style("opacity", 0);
-      svg.select(".pie-graph."+options.name).style("opacity", 1);
-      legend.select(".stack-chart."+options.name).style("opacity", 1);
-      g.select(".markers."+options.name).style("opacity", 1);
-      g.select(".point-arcs."+options.name).style("opacity", 1);
+      var animationSpeed = 600;
 
-      svg.selectAll(".pie-graph").style("display", "none");
-      legend.selectAll(".stack-chart").style("display", "none");
-      g.selectAll(".markers").style("display", "none");
-      g.selectAll(".point-arcs").style("display", "none");
-      svg.select(".pie-graph."+options.name).style("display", "");
-      legend.select(".stack-chart."+options.name).style("display", "");
-      g.select(".markers."+options.name).style("display", "");
-      g.select(".point-arcs."+options.name).style("display", "");
+      // special case of "all"
+      if (options.name === 'All') {
+        // method to show only clicked
 
-      legend.selectAll(".legend").style("fill-opacity", 0.5);
-      legend.select(".legend."+options.name).style("fill-opacity", 1);
+        svg.selectAll(".pie-graph").transition().duration(animationSpeed).style("opacity", 1);
+        d3.selectAll(".stack-chart").transition().duration(animationSpeed).style("opacity", 1);
+        g.selectAll(".markers").transition().duration(animationSpeed).style("opacity", 1);
+        g.selectAll(".point-arcs").transition().duration(animationSpeed).style("opacity", 1);
 
-      activeLegend = options.name; // track which layer is active
+        svg.selectAll(".pie-graph").style("display", "");
+        d3.selectAll(".stack-chart").style("display", "");
+        g.selectAll(".markers").style("display", "");
+        g.selectAll(".point-arcs").style("display", "");
+
+        navigation.selectAll("a").style("opacity", 1).classed("active", true).classed("secondary", false);;
+
+      } else {
+        // method to show only clicked
+        svg.selectAll(".pie-graph:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
+        d3.selectAll(".stack-chart:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
+        g.selectAll(".markers:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
+        g.selectAll(".point-arcs:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
+        svg.select(".pie-graph."+options.name).transition().duration(animationSpeed).style("opacity", 1);
+        d3.select(".stack-chart."+options.name).transition().duration(animationSpeed).style("opacity", 1);
+        g.select(".markers."+options.name).transition().duration(animationSpeed).style("opacity", 1);
+        g.select(".point-arcs."+options.name).transition().duration(animationSpeed).style("opacity", 1);
+
+        svg.selectAll(".pie-graph:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
+        d3.selectAll(".stack-chart:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
+        g.selectAll(".markers:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
+        g.selectAll(".point-arcs:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
+        svg.select(".pie-graph."+options.name).style("display", "");
+        d3.select(".stack-chart."+options.name).style("display", "");
+        g.select(".markers."+options.name).style("display", "");
+        g.select(".point-arcs."+options.name).style("display", "");
+
+        navigation.selectAll("a").style("opacity", 0.5).classed("active", false).classed("secondary", true);
+        navigation.select("a."+options.name).style("opacity", 1).classed("active", true).classed("secondary", false);;
+      }
+
 
       // drawPieGraph();
 
@@ -256,17 +296,15 @@ function addLegend(data, options) {
       // }
       // legend.select(".legend."+options.name).style("fill-opacity", newOpacity+.5);
     })
-    .text(options.name)
+    // .text(options.name)
   ;
 }
 
 function drawStackChart(data,options) {
-  console.log(data);
-
-  var renderedData = [];
 
   // constrcut data
   // we convert our flat data into groupings
+  var renderedData = [];
   for (var i = 0; i < data.length; i++) {
     var tempGroup = Math.floor(data[i][3]);
     renderedData[tempGroup] = renderedData[tempGroup] || 0;
@@ -274,11 +312,9 @@ function drawStackChart(data,options) {
     renderedData[tempGroup] = tempVal;
   }
 
-  data = [{"EMBL Members":renderedData[1],"Rest of Europe":renderedData[2],"Rest of world":renderedData[3],"Other":renderedData[4]}];
-  // var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
-
-  console.log(data);
-
+  // make our cosntructed data
+  data = [{"Europe":renderedData[1],"EMBL Only":renderedData[2],"Rest of world":renderedData[3],"Other":renderedData[4]}];
+  var key = ["Europe", "EMBL Only", "Rest of world", "Other"];
 
   var initStackedBarChart = {
   	draw: function(config) {
@@ -286,18 +322,20 @@ function drawStackChart(data,options) {
   		domEle = config.element,
   		stackKey = config.key,
   		data = config.data,
-  		margin = {top: 20, right: 20, bottom: 30, left: 50},
-  		parseDate = d3.timeParse("%m/%Y"),
-  		width = 960 - margin.left - margin.right,
-  		height = 500 - margin.top - margin.bottom,
+  		margin = {top: 150, right: 20, bottom: 30, left: 30},
+  		// parseDate = d3.timeParse("%m/%Y"),
+  		// width = 960 - margin.left - margin.right,
+  		// height = 500 - margin.top - margin.bottom,
   		xScale = d3.scaleLinear().rangeRound([0, width]),
   		yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
   		color = d3.scaleOrdinal(d3.schemeCategory20),
-  		xAxis = d3.axisBottom(xScale),
-  		yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
-  		stackSvg = legend.append("g")
-          .attr("class", options.name + " stack-chart")
-  				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  		// xAxis = d3.axisBottom(xScale),
+  		// yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
+  		stackSvg = d3.select('svg.stack-chart-parent').append("g")
+        .attr("class", options.name + " stack-chart")
+        .attr("style", "opacity: 0")
+				// .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+      ;
 
   		var stack = d3.stack()
   			.keys(stackKey)
@@ -305,9 +343,9 @@ function drawStackChart(data,options) {
   			.offset(d3.stackOffsetNone);
 
   		var layers = stack(data);
-  			data.sort(function(a, b) { return b.total - a.total; });
-  			yScale.domain(data.map(function(d) { return parseDate(d.date); }));
-  			xScale.domain([0, d3.max(layers[layers.length - 1], function(d) { return d[0]; }) ]).nice();
+  			// data.sort(function(a, b) { return b.total - a.total; });
+      // yScale.domain(data.map(function(d) { return d[0]; }));
+			xScale.domain([0, 2200]).nice();
 
   		var layer = stackSvg.selectAll(".layer")
   			.data(layers)
@@ -323,7 +361,29 @@ function drawStackChart(data,options) {
   			  .attr("x", function(d) { return xScale(d[0]); })
           .attr("height", 20)
           // .attr("height", yScale.bandwidth())
-  			  .attr("width", function(d) { return xScale(d[0]) });
+          // .attr("width", function(d) { return xScale(d[0]) });
+          .attr("width", function(d) {
+            return xScale(d[1]-d[0])
+          })
+          ;
+
+        layer.append("text")
+          .attr('dy', function(d) {
+            return '2.5rem';
+          })
+          .attr('dx', function(d) {
+            // special positioning for labels on grans
+            if (options.name == 'grants' && d['key'] == 'EMBL Only') {
+              return xScale(d[0][0]) - 80;
+            }
+            return xScale(d[0][0])
+          })
+          .html(function(d) {
+            if (d[0]['data'][d['key']] > 0) {
+              return d['key'] +": " + d[0]['data'][d['key']];
+            }
+          })
+        ;
 
   			// stackSvg.append("g")
   			// .attr("class", "axis axis--x")
@@ -336,8 +396,6 @@ function drawStackChart(data,options) {
   			// .call(yAxis);
   	}
   }
-  // var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
-  var key = ["EMBL Members", "Rest of Europe", "Rest of world", "Other"];
   initStackedBarChart.draw({
   	data: data,
   	key: key,
@@ -464,13 +522,14 @@ function loadData(url,options) {
 }
 
 // load data sets
-loadData('data/publications.json',  {   fill: 'rgba(0,100,100,.3)', name: 'publications', drawSpheres: true, drawStackChart: true, drawLines: false, order: 5});
-loadData('data/grants.json',  {         fill: 'rgba(0,128,0,.3)', name: 'grants', drawSpheres: true, drawStackChart: true, drawLines: false, order: 4});
-loadData('data/industry-partners.json',{fill: 'rgba(0,128,0,.2)', name: 'industry-partners', drawPieGraph: false, drawLines: true, order: 1});
-loadData('data/industry-sab.json',{     fill: 'rgba(0,100,100,.2)', name: 'industry-sab', drawPieGraph: false, drawLines: true, order: 2});
-loadData('data/collab.json',  {         fill: 'rgba(200,0,0,.2)', name: 'collaboraters', drawPieGraph: false, drawLines: true, order: 3});
+loadData('data/publications.json',  {   fill: 'rgb(0,100,100)', name: 'publications', drawSpheres: true, drawStackChart: true, drawLines: false, order: 5});
+loadData('data/grants.json',  {         fill: 'rgb(0,128,0)', name: 'grants', drawSpheres: true, drawStackChart: true, drawLines: false, order: 4});
+loadData('data/industry-partners.json',{fill: 'rgb(0,128,0)', name: 'industry-partners', drawPieGraph: false, drawLines: true, order: 1});
+loadData('data/industry-sab.json',{     fill: 'rgb(0,100,100)', name: 'industry-sab', drawPieGraph: false, drawLines: true, order: 2});
+loadData('data/collab.json',  {         fill: 'rgb(200,0,0)', name: 'collaboraters', drawPieGraph: false, drawLines: true, order: 3});
 
-// addPieGraph();
+// create the "all" button
+addLegend('',{ fill: 'rgb(100,100,100)', name: 'All', order: 0})
 
 // map zooming
 function clicked(d) {

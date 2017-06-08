@@ -47,20 +47,40 @@ div.tool-tip {
 }
 .button {
   text-transform: capitalize;
+  position: relative;
 }
+.button .slideshow-progress {
+  content: " ";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 5px;
+  border-bottom: 5px solid rgba(255,255,255,.5);
+  z-index: 5;
+  width: 0;
+  display: none;
+}
+.navigation .button.active .slideshow-progress {
+  display: block;
+}
+.navigation.paused .button.active .slideshow-progress { display: none; }
 .button.All:before{
   content: "/ ";
   font-family: "EBI-Functional"
-
 }
 .button.All.active:before{
-  content: "Showing ";
-  font-family: "Helvetica", Arial, sans-serif;
+  content: "";
+}
+.button.All.show-pause:before{
+  content: "o ";
+  text-transform: lowercase;
+  font-family: "EBI-Functional"
 }
 
 .callout {
   position: absolute;
-  background: rgba(255, 255, 255, 0.5);
+  /*background: rgba(255, 255, 255, 0.5);*/
+  background: none;
 }
 
 </style>

@@ -230,7 +230,7 @@ function addLegend(data, options) {
       // if (options.name === 'All') {
       //   return 'Show all';
       // }
-      return options.name;
+      return options.name + '<div class="slideshow-progress"></div>';
     })
     .on("click", function() {
       // Hide or show the elements
@@ -242,13 +242,24 @@ function addLegend(data, options) {
       if (options.name === 'All') {
         // method to show only clicked
 
+        if (slideShow.active) {
+          d3.select('.button .slideshow-progress').style("width","0");
+          d3.select('.button.All').html('Play');
+        } else {
+        }
+        d3.select('.navigation').classed('paused', slideShow.active);
+        slideShow.active = !slideShow.active;
+        d3.select('.button.All')
+          .classed("show-pause", slideShow.active);
+        enableSlideShowMode();
+
         svg.selectAll(".pie-graph").transition().duration(animationSpeed).style("opacity", 1);
-        d3.selectAll(".stack-chart").transition().duration(animationSpeed).style("opacity", 1);
+        // d3.selectAll(".stack-chart").transition().duration(animationSpeed).style("opacity", 1);
         g.selectAll(".markers").transition().duration(animationSpeed).style("opacity", 1);
         g.selectAll(".point-arcs").transition().duration(animationSpeed).style("opacity", 1);
 
         svg.selectAll(".pie-graph").style("display", "");
-        d3.selectAll(".stack-chart").style("display", "");
+        // d3.selectAll(".stack-chart").style("display", "");
         g.selectAll(".markers").style("display", "");
         g.selectAll(".point-arcs").style("display", "");
 
@@ -328,7 +339,7 @@ function drawStackChart(data,options) {
   		// height = 500 - margin.top - margin.bottom,
   		xScale = d3.scaleLinear().rangeRound([0, width]),
   		yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
-  		color = d3.scaleOrdinal(d3.schemeCategory20),
+  		// color = d3.scaleOrdinal(d3.schemeCategory20),
   		// xAxis = d3.axisBottom(xScale),
   		// yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
   		stackSvg = d3.select('svg.stack-chart-parent').append("g")
@@ -351,7 +362,9 @@ function drawStackChart(data,options) {
   			.data(layers)
   			.enter().append("g")
   			.attr("class", "layer")
-  			.style("fill", function(d, i) { return color(i); });
+  			// .style("fill", function(d, i) { return color(i); })
+        .style("fill", options.fill)
+        ;
 
   		  layer.selectAll("rect")
   			  .data(function(d) { return d; })
@@ -365,6 +378,7 @@ function drawStackChart(data,options) {
           .attr("width", function(d) {
             return xScale(d[1]-d[0])
           })
+          .style("stroke", "#fff")
           ;
 
         layer.append("text")
@@ -530,6 +544,39 @@ loadData('data/collab.json',  {         fill: 'rgb(200,0,0)', name: 'collaborate
 
 // create the "all" button
 addLegend('',{ fill: 'rgb(100,100,100)', name: 'All', order: 0})
+
+
+
+
+var slideShow = {
+  active: true,
+  speed: 7000,
+  current: -1,
+  slides: ["publications", "grants", "industry-partners", "industry-sab", "collaboraters"]
+};
+
+function enableSlideShowMode() {
+  if (slideShow.active) {
+    if (slideShow.current < slideShow.slides.length) {
+      slideShow.current++
+    } else {
+      slideShow.current = 0;
+    }
+    d3.select('.button.'+slideShow.slides[slideShow.current]).dispatch('click');
+    // d3.selectAll('.button:after').style("background-color","rgba(0,0,0,0)");
+    d3.selectAll('.button .slideshow-progress').style("width","0%");
+    d3.select('.button.'+slideShow.slides[slideShow.current]+' .slideshow-progress').transition().duration(slideShow.speed-200).style("width", "100%")
+    ;
+
+    // set the all button to slideShow mode
+    d3.select('.button.All').html('Stop')
+      .classed("show-pause", true);
+    // keep the slideshow going
+    setTimeout(function () { enableSlideShowMode(); }, slideShow.speed);
+  }
+}
+
+setTimeout(function () { enableSlideShowMode(); }, 500);
 
 // map zooming
 function clicked(d) {

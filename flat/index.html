@@ -65,8 +65,8 @@ a.button.secondary {
   position: absolute;
   left: 0;
   bottom: 0;
-  height: 5px;
-  border-bottom: 5px solid rgba(255,255,255,.5);
+  height: 3px;
+  border-bottom: 3px solid rgba(0,0,0,.5);
   z-index: 5;
   width: 0;
   display: none;
@@ -76,7 +76,7 @@ a.button.secondary {
 }
 .navigation.paused .button.active .slideshow-progress { display: none; }
 .button.All:before{
-  content: "/ ";
+  /*content: "/ ";*/
   font-family: "EBI-Functional"
 }
 .button.All.active:before{
@@ -87,6 +87,21 @@ a.button.secondary {
   text-transform: lowercase;
   font-family: "EBI-Functional"
 }
+.button.spheres:before{
+  content: "T ";
+  font-family: "EBI-Functional"
+}
+.button.lines:before{
+  content: "- ";
+  font-family: "EBI-Functional"
+}
+
+.button.publications:before { color: rgb(0,100,100); }
+.button.grants:before { color: rgb(0, 128, 0); }
+.button.industry-partners:before { color: rgb(51,51,51); }
+.button.industry-sab:before { color: rgb(0,128,0); }
+.button.collaboraters:before { color: rgb(200,0,0); }
+
 
 .callout {
   position: absolute;
@@ -100,15 +115,28 @@ a.button.secondary {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ffffff', GradientType=0 );
 
 }
-
+.stack-chart-parent {
+  position: fixed;
+  left: 2rem;
+  bottom: 1rem;
+}
+.big-number-parent {
+  position: fixed;
+  bottom: 3.5rem;
+  left: 2rem;
+  font-size: 2rem;
+  font-weight: 800;
+}
 </style>
 <div class="callout columns">
-  <h2>Global collaboration</h2>
-  <p>
-    We are proudly European, but our culture and community are profoundly international.<br/>
+  <h2>EMBL-EBI Global collaboration</h2>
+  <p class="lead">
+    We are proudly European, but our culture and community are profoundly international.
+    <br/>
     This map shows our global network in terms of joint grant funding, joint publications, major database collaborations and expert guidance.
    </p>
   <div class="navigation padding-top-large"></div>
+  <svg class="big-number-parent" style="width:15rem; height: 3rem;"></svg>
   <svg class="stack-chart-parent" style="width:100%; height: 3rem;"></svg>
 </div>
 <svg class="main"></svg>

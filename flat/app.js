@@ -215,15 +215,23 @@ function addLegend(data, options) {
     // .attr("x", 30 + offset)
     // .attr("y", 100)
     // .style("background-color", options.color)
-    .attr("class","button padding-top-medium padding-bottom-medium "+options.name)
-    .attr("style", function(){
+    .attr("class", function(){
+      var classes = "button padding-top-medium padding-bottom-medium "+options.name+" ";
       if (options.drawLines) {
-        // add a line to top for lines
-        return "border-top: 5px solid "+options.fill+"; background: none; color: #333"
-
+        classes += "lines"
       }
-      return "border-top: 5px solid "+options.fill+"; background:"+options.fill
-
+      if (options.drawSpheres) {
+        classes += "spheres"
+      }
+      return classes;
+    })
+    .attr("style", function(){
+      return "border-top: 5px solid "+options.fill+"; background: none; color: #333"
+      // if (options.drawLines) {
+      //   // add a line to top for lines
+      //   return "border-top: 5px solid "+options.fill+"; background: none; color: #333"
+      // }
+      // return "border-top: 5px solid "+options.fill+"; background:"+options.fill
     })
     .attr("href","#")
     .html(function(d){
@@ -231,6 +239,26 @@ function addLegend(data, options) {
       //   return 'Show all';
       // }
       return options.humanName + '<div class="slideshow-progress"></div>';
+    })
+    .on("mouseover", function() {
+      // disable the slideshow once the user engages
+      if (slideShow.active) {
+        d3.select('.button .slideshow-progress').style("width","0");
+        d3.select('.button.All').html('Show all');
+        slideShow.active = false;
+        d3.select('.button.All')
+          .classed("show-pause", slideShow.active);
+      }
+      d3.select('.button.All').html('Show all');
+      slideShow.active = false;
+      d3.select(this).dispatch('click');
+
+    })
+    .on("mouseout", function() {
+      // if (slideShow.active == false) {
+      //   enableSlideShowMode();
+      // }
+      // slideShow.active = true;
     })
     .on("click", function() {
       // Hide or show the elements
@@ -241,17 +269,19 @@ function addLegend(data, options) {
       // special case of "all"
       if (options.name === 'All') {
         // method to show only clicked
+        d3.select('.button.All').html('Showing all');
 
-        if (slideShow.active) {
-          d3.select('.button .slideshow-progress').style("width","0");
-          d3.select('.button.All').html('Play');
-        } else {
-        }
-        d3.select('.navigation').classed('paused', slideShow.active);
-        slideShow.active = !slideShow.active;
-        d3.select('.button.All')
-          .classed("show-pause", slideShow.active);
-        enableSlideShowMode();
+        // if (slideShow.active) {
+        //   d3.select('.button .slideshow-progress').style("width","0");
+        //   d3.select('.button.All').html('Show all');
+        //   slideShow.active = false;
+        //   d3.select('.button.All')
+        //     .classed("show-pause", slideShow.active);
+        // } else {
+        // }
+        // d3.select('.navigation').classed('paused', slideShow.active);
+        // slideShow.active = !slideShow.active;
+        // enableSlideShowMode();
 
         svg.selectAll(".pie-graph").transition().duration(animationSpeed).style("opacity", 1);
         // d3.selectAll(".stack-chart").transition().duration(animationSpeed).style("opacity", 1);
@@ -263,24 +293,30 @@ function addLegend(data, options) {
         g.selectAll(".markers").style("display", "");
         g.selectAll(".point-arcs").style("display", "");
 
+        d3.selectAll(".big-number").style("opacity", 0);
+
         navigation.selectAll("a").style("opacity", 1).classed("active", true).classed("secondary", false);;
 
       } else {
         // method to show only clicked
         svg.selectAll(".pie-graph:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
+        d3.selectAll(".big-number:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
         d3.selectAll(".stack-chart:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
         g.selectAll(".markers:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
         g.selectAll(".point-arcs:not(."+options.name+")").transition().duration(animationSpeed).style("opacity", 0);
         svg.select(".pie-graph."+options.name).transition().duration(animationSpeed).style("opacity", 1);
+        d3.select(".big-number."+options.name).transition().duration(animationSpeed).style("opacity", 1);
         d3.select(".stack-chart."+options.name).transition().duration(animationSpeed).style("opacity", 1);
         g.select(".markers."+options.name).transition().duration(animationSpeed).style("opacity", 1);
         g.select(".point-arcs."+options.name).transition().duration(animationSpeed).style("opacity", 1);
 
         svg.selectAll(".pie-graph:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
+        d3.selectAll(".big-number:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
         d3.selectAll(".stack-chart:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
         g.selectAll(".markers:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
         g.selectAll(".point-arcs:not(."+options.name+")").transition().delay(animationSpeed/2).style("display", "none");
         svg.select(".pie-graph."+options.name).style("display", "");
+        d3.select(".big-number."+options.name).style("display", "");
         d3.select(".stack-chart."+options.name).style("display", "");
         g.select(".markers."+options.name).style("display", "");
         g.select(".point-arcs."+options.name).style("display", "");
@@ -310,6 +346,38 @@ function addLegend(data, options) {
     // .text(options.name)
   ;
 }
+
+function drawBigNumber(data,options) {
+  bigNumberSVG = d3.select('svg.big-number-parent').append("g")
+    .attr("class", options.name + " big-number")
+    .attr("style", "opacity: 0")
+    // .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+  ;
+
+  bigNumberSVG.append("text")
+  .attr("y", function(d) { return 30; })
+  .attr("x", function(d) { return 0; })
+    // .attr('dy', function(d) {
+    //   return '2.5rem';
+    // })
+    // .attr('dx', function(d) {
+    //   // special positioning for labels on grans
+    //   if (options.name == 'grants' && d['key'] == 'EMBL Only') {
+    //     return xScale(d[0][0]) - 80;
+    //   }
+    //   return xScale(d[0][0])
+    // })
+    .html(function(d) {
+      // console.log(data);
+      return data.length + ' Countries';
+      // if (d[0]['data'][d['key']] > 0) {
+      //   return d['key'] +": " + d[0]['data'][d['key']];
+      // }
+    })
+  ;
+
+}
+
 
 function drawStackChart(data,options) {
 
@@ -538,6 +606,7 @@ function loadData(url,options) {
     if (options.drawStackChart) {
       drawStackChart(data,options);
     }
+    drawBigNumber(data,options);
     addLegend(data,options);
   });
 }
@@ -596,14 +665,14 @@ function enableSlideShowMode() {
     ;
 
     // set the all button to slideShow mode
-    d3.select('.button.All').html('Stop')
-      .classed("show-pause", true);
     // keep the slideshow going
     setTimeout(function () { enableSlideShowMode(); }, slideShow.speed);
   }
 }
 
 setTimeout(function () { enableSlideShowMode(); }, 500);
+d3.select('.button.All').html('Stop slideshow')
+  .classed("show-pause", true);
 
 // map zooming
 function clicked(d) {

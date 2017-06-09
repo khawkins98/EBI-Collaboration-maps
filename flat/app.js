@@ -1,3 +1,9 @@
+/*
+ to do
+ - remove animation progress lines on pause
+ - abort animations when changing slides/stoping slideshow
+ */
+
 var svg = d3.select("svg.main"),
     active = d3.select(null),
     width = window.innerWidth-5,
@@ -116,7 +122,7 @@ function addMarkers(data,options) {
       if (options.drawSpheres) {
         return Math.sqrt(d[2]*80)+3+'px';
       } else {
-        return 3+'px';
+        return (3+(d[2]*10))+'px';
       }
     })
     .attr("fill", options.fill)
@@ -154,7 +160,7 @@ function addMarkers(data,options) {
           if (options.drawSpheres) {
             return Math.sqrt(d[2]*80)+3+'px';
           } else {
-            return 3+'px';
+            return (3+(d[2]*10))+'px';
           }
         })
       ;
@@ -355,24 +361,18 @@ function drawBigNumber(data,options) {
   ;
 
   bigNumberSVG.append("text")
-  .attr("y", function(d) { return 30; })
-  .attr("x", function(d) { return 0; })
-    // .attr('dy', function(d) {
-    //   return '2.5rem';
-    // })
-    // .attr('dx', function(d) {
-    //   // special positioning for labels on grans
-    //   if (options.name == 'grants' && d['key'] == 'EMBL Only') {
-    //     return xScale(d[0][0]) - 80;
-    //   }
-    //   return xScale(d[0][0])
-    // })
+    .attr("y", function(d) { return 30; })
+    .attr("x", function(d) { return 0; })
     .html(function(d) {
-      // console.log(data);
+      if (options.drawLines) {
+        // tally the number of cities
+        var tally = 0;
+        for (var i = 0; i < data.length; i++) {
+          tally+=data[i][2]*10;
+        }
+        return tally + ' Locations';
+      }
       return data.length + ' Countries';
-      // if (d[0]['data'][d['key']] > 0) {
-      //   return d['key'] +": " + d[0]['data'][d['key']];
-      // }
     })
   ;
 
@@ -701,7 +701,6 @@ function reset() {
       .duration(750)
       .call( zoom.transform, d3.zoomIdentity );
 }
-
 
 function zoomed() {
   // console.log('zoom',d3.event.transform.k)

@@ -68,7 +68,7 @@ var tooltip = d3.select("body").append("div")
 //     .attr("d", path(d3.geoGraticule10()));
 
 g.append("path")
-    .attr("fill", "none")
+    .attr("fill", "#fff")
     .attr("stroke", "#000")
     .attr("stroke-width", 0.25)
     .attr("d", path({type: "Sphere"}));

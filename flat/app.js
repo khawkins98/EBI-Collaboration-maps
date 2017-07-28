@@ -67,11 +67,6 @@ var tooltip = d3.select("body").append("div")
 //     .attr("stroke-opacity", 0.5)
 //     .attr("d", path(d3.geoGraticule10()));
 
-g.append("path")
-    .attr("fill", "#fff")
-    .attr("stroke", "#000")
-    .attr("stroke-width", 0.25)
-    .attr("d", path({type: "Sphere"}));
 
 d3.json("world-50m.json", function(error, world) {
   if (error) throw error;
@@ -89,6 +84,12 @@ d3.json("world-50m.json", function(error, world) {
       .attr("fill", "#CCC")
       .attr("d", path)
       .on("click", clicked);
+
+  g.insert("path",":first-child")
+      .attr("fill", "#fff")
+      .attr("stroke", "#000")
+      .attr("stroke-width", 0.25)
+      .attr("d", path({type: "Sphere"}));
 
   svg
     .call(zoom);

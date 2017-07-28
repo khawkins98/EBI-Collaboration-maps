@@ -87,6 +87,7 @@ d3.json("world-50m.json", function(error, world) {
 
   g.insert("path",":first-child")
       .attr("fill", "#fff")
+      .attr("id", "sphere")
       .attr("stroke", "#000")
       .attr("stroke-width", 0.25)
       .attr("d", path({type: "Sphere"}));
